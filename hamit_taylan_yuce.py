@@ -11,28 +11,26 @@ import webbrowser as wb
 import subprocess
 import os
 import sys
-from pathlib import Path
-import tkinter
-from tkinter import messagebox
+import platform
 
-ftpURL = 'ftp.f-secure.com'
-directory = 'support/tools/fsdiag'
-fileName = 'fsdiag_standalone.exe'
+def checkOS():
+    """ check the operating system """
+
+    if not (platform.system() == 'Windows'):
+        sys.exit(0)
 
 def fetchFTP(ftpURL,directory,fileName):
     """ fetches the ftpURL file """
 
-    if(not fileTest(fileName)):
+    if(not fsecureFileExist(fileName)):
         try:
-            print('file does not exist')
+            print('standalone is being downloaded')
             ftp = FTP(ftpURL)
             ftp.login()
             ftp.cwd(directory)
             ftp.retrbinary('RETR ' + fileName, open(fileName, 'wb').write)
-            "ftp.retrbinary(fileName, open(fileName, 'wb').write)"
             ftp.quit()
         except:
-            "print(e)"
             print('Connection Error')
             sys.exit('Cannot fetch file')
 
@@ -62,32 +60,28 @@ def runStandAlone(fileName):
     p = subprocess.Popen(fileName, shell=True)
     p.communicate()
 
-def fileTest(testFile):
+def fsecureFileExist(testFile):
     """ check if the file exist """
 
-    currentDirectory = os.getcwd()
-    path = Path(currentDirectory + str('/') + testFile)
+    currentDirectory = os.path.split(os.path.realpath(os.sys.argv[0]))[0]
 
-    return path.is_file()
+    return os.path.isfile(os.path.join(currentDirectory, testFile))
 
-def showBox(testFile):
-    """ open the messagebox to show whether we have file in the same directory"""
 
-    root = tkinter.Tk()
-    root.withdraw()
-    doesFileExist = fileTest(testFile)
- 
-    if doesFileExist:
-        messagebox.showinfo("File "+testFile+ " exists!", "Success")
-    else:
-        messagebox.showinfo("File "+testFile+ " does not exist", "Failure")
+ftpURL = 'ftp.f-secure.com'
+directory = 'support/tools/fsdiag'
+fileName = 'fsdiag_standalone.exe'
+path_to_desktop = os.path.join(os.environ['USERPROFILE'],'Desktop')
 
+checkOS()
 fetchFTP(ftpURL,directory,fileName)
 flag = openOtherProgram()
 if flag:
     runStandAlone(fileName)
 
-showBox('fsdiag.7z')
+if os.path.isfile(os.path.join(path_to_desktop, 'fsdiag.7z')):
+    print('fsdiag.7z exists on Desktop')
+else:
+    print('fsdiag.7z does not exists on Desktop')
 
 sys.exit(0)
-
